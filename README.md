@@ -73,3 +73,5 @@ Passphrase for /home/gvisoc/Downloads/MOK.priv:
 $ echo $?
 0
 ```
+# Credits
+This script is inspired by [this Gist](https://gist.github.com/reillysiemens/ac6bea1e6c7684d62f544bd79b2182a4) by [Reilly Tucker Siemens](https://gist.github.com/reillysiemens), and taken further to sign any set of modules, plus fix any broken systemd service caused by unsigned modules.
