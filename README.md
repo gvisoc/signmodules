@@ -26,7 +26,7 @@ Instead of manually signing module by module, check [Usage](#usage) section.
 The compression adn decompression utilities `xz` and `unxz` are also needed. They are provided by the package `xz`.
 
 # Usage
-Clone this repository or download the script [signmodules], and place it in the `$PATH` variable.
+Clone this repository or download the script [signmodules](https://github.com/gvisoc/signmodules/blob/main/signmodules), and place it in the `$PATH` variable.
 
 ## Invocation and Behaviour
 The usage of the script is the following:
