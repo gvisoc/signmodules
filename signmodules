@@ -1,0 +1,99 @@
+# signmodules -- a shell script for signing kernel modules for Fedora.
+# Copyright (C) 2022  Gabriel Viso Carrera
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+#!/bin/sh
+
+# Re-run with sudo if the user didn't prepend sudo.
+# This will ask for the user's password interactively.
+if [ $EUID != 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+readonly hash_algo='sha256'
+readonly key="$1"			      # '/path/to/MOK.priv'
+readonly x509="$2"			    # '/path/to/MOK.der'
+readonly modules="${@:3}"		# The names of the modules (no extensions)
+readonly name="$(basename $0)"
+readonly fullver=$(uname -r)
+
+log() { local string="${1}"; echo "[$name] ${string}"; }
+
+# The exact location of `sign-file` might vary depending on your platform.
+# This is for Fedora
+alias sign-file="/usr/src/kernels/${fullver}/scripts/sign-file"
+
+[ -z "${KBUILD_SIGN_PIN}" ] && read -p "Passphrase for ${key}: " KBUILD_SIGN_PIN
+export KBUILD_SIGN_PIN
+
+error_count_failed_signatures=0
+for modulename in ${modules}; do
+  log "Processing all modules for '${modulename}':"
+  # In Fedora, modinfo is in the PATH for root users. In other 
+  # distributions it may not, and may be located at either /sbin
+  # or /usr/sbin
+  # Another difference is whether your distribution compresses the
+  # modules (.ko.xz) or not (just .ko).
+  for mod in $(dirname $(modinfo -n $modulename))/*.ko.xz; do
+    log "    Unpacking '${mod}'..."
+    unxz ${mod}
+    mod_basename=${mod:0:-3}
+    log "    Signing '${mod_basename}'..."
+    sign-file "${hash_algo}" "${key}" "${x509}" "${mod_basename}"
+    
+    code=$?
+    if [ ${code} -ne 0 ]; then
+      log "    Signature failed with error code ${code}." 
+      error_count_failed_signatures=$(( ${error_count_failed_signatures}+1 ))
+    fi
+    
+    log "    Recompressing '${mod_basename}'"
+    xz -f ${mod_basename}
+  done
+done
+
+log "Restarting any failed services after processing modules:"
+failed_services=$(systemctl list-units --state=failed --plain --no-legend | cut -d ' ' -f 1)
+error_count_restart_services=0
+for service in ${failed_services}; do
+  systemctl restart ${service}
+  
+  code=$?
+  if [ ${code} -ne 0 ]; then
+    log "    Requested '${service}' restart failed with error code ${code}"
+    error_count_restart_services=$(( ${error_count_restart_services} + 1 ))
+  else 
+    log "    Requested '${service}' restart with result ${code}"
+  fi
+
+done 
+
+result_code=0
+if [ ${error_count_failed_signatures} -ne 0 ]; then
+  log "${error_count_failed_signatures} modules could not be signed."
+  result_code=$(( ${result_code} + 1 ))
+fi
+if [ ${error_count_restart_services} -ne 0 ]; then
+  log "${error_count_restart_services} services didn't (re)start correctly."
+  result_code=$(( ${result_code} + 2 ))
+fi
+if [ ${result_code} -ne 0 ]; then
+  log "Done with errors. Exiting with code ${result_code}"
+else
+  log "Done. Exiting with code ${result_code} --success."
+fi
+exit $result_code
