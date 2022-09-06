@@ -19,11 +19,8 @@ The script should be run after a reboot performed as a result of a kernel update
 
 # Prerrequisites
 - A computer with Secure Boot enabled, running Fedora.
-- Create a Machine Owner Key and enroll it, following the relevant instructions on the Fedora [System Administrator's Guide: Signing Kernel Modules for Secure Boot](https://docs.fedoraproject.org/en-US/fedora/latest/system-administrators-guide/kernel-module-driver-configuration/Working_with_Kernel_Modules/#sect-signing-kernel-modules-for-secure-boot) 
-
-Instead of manually signing module by module, check [Usage](#usage) section.
-
-The compression adn decompression utilities `xz` and `unxz` are also needed. They are provided by the package `xz`.
+- Create a Machine Owner Key and enroll it, following the relevant instructions on the Fedora [System Administrator's Guide: Signing Kernel Modules for Secure Boot](https://docs.fedoraproject.org/en-US/fedora/latest/system-administrators-guide/kernel-module-driver-configuration/Working_with_Kernel_Modules/#sect-signing-kernel-modules-for-secure-boot).
+- The compression adn decompression utilities `xz` and `unxz` are also needed. They are provided by the package `xz`.
 
 # Usage
 Clone this repository or download the script [signmodules], and place it in the `$PATH` variable.
@@ -40,6 +37,8 @@ signmodules /path/to/MOK.priv /path/to/MOK.der MODULE_1 MODULE_2 ... MODULE_N
 
 The script will ask for the user password, as both signing modules and restarting systemd services are operations that must be run under `sudo`.
 
+Invoked like the above, the script won't write any logs (unless in trouble). Add `-v` (*verbose*) before the list of modules to enable logs
+
 ## Result Codes
 The result codes are `0` if all operations were successful, or: 
 - `1` if there were failures while signing modules, 
@@ -49,7 +48,7 @@ The result codes are `0` if all operations were successful, or:
 ## Example
 An example invocation is the following, useful for signing all modules for *Virtual Box* and *Video4Linux Loopback*, and restarting the relevant systemd services, all in one go:
 ```
-$ signmodules ~/Downloads/MOK.priv ~/Downloads/MOK.der vboxdrv v4l2loopback
+$ signmodules ~/Downloads/MOK.priv ~/Downloads/MOK.der -v vboxdrv v4l2loopback
 [sudo] password for gvisoc: 
 Passphrase for /home/gvisoc/Downloads/MOK.priv: 
 [signmodules] Processing all modules for 'vboxdrv':
@@ -73,3 +72,14 @@ Passphrase for /home/gvisoc/Downloads/MOK.priv:
 $ echo $?
 0
 ```
+Without logs:
+```
+$ signmodules ~/Downloads/MOK.priv ~/Downloads/MOK.der -v vboxdrv v4l2loopback
+[sudo] password for gvisoc: 
+Passphrase for /home/gvisoc/Downloads/MOK.priv: 
+$ echo $?
+0
+```
+
+# Automation of the script
+To run the script in an automation and without user interaction, set up the environment variable `KBUILD_SIGN_PIN` with the passphrase of the private part of the Machine Owner Key, `MOK.priv`, and run the script as an privileged service / under a system user with elevated privileges.

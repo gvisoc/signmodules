@@ -24,21 +24,34 @@ if [ $EUID != 0 ]; then
     exit $?
 fi
 
-readonly hash_algo='sha256'
-readonly key="$1"			      # '/path/to/MOK.priv'
-readonly x509="$2"			    # '/path/to/MOK.der'
-readonly modules="${@:3}"		# The names of the modules (no extensions)
+readonly hash_algo="sha256"
+readonly key="$1"			      # "/path/to/MOK.priv"
+readonly x509="$2"			    # "/path/to/MOK.der"
+if [[ ${3} == "-v" ]]; then
+  readonly verbose=1          # The process will output logs
+  readonly modules="${@:4}"		# The names of the modules (no extensions)
+else
+  readonly verbose=0          # The process won't output logs
+  readonly modules="${@:3}"		# The names of the modules (no extensions)
+fi
+
 readonly name="$(basename $0)"
 readonly fullver=$(uname -r)
 
-log() { local string="${1}"; echo "[$name] ${string}"; }
+log() { 
+  if [ ${verbose} -ne 0 ]; then
+    local string="${1}"; echo "[$name] ${string}"; 
+  fi
+}
 
 # The exact location of `sign-file` might vary depending on your platform.
 # This is for Fedora
 alias sign-file="/usr/src/kernels/${fullver}/scripts/sign-file"
 
-[ -z "${KBUILD_SIGN_PIN}" ] && read -p "Passphrase for ${key}: " KBUILD_SIGN_PIN
-export KBUILD_SIGN_PIN
+if [ -z "${KBUILD_SIGN_PIN+x}" ]; then 
+  read -p "Passphrase for ${key}: " -s KBUILD_SIGN_PIN
+  export KBUILD_SIGN_PIN
+fi
 
 error_count_failed_signatures=0
 for modulename in ${modules}; do
