@@ -20,7 +20,7 @@
 # Re-run with sudo if the user didn't prepend sudo.
 # This will ask for the user's password interactively.
 if [ $EUID != 0 ]; then
-    sudo "$0" "$@"
+    sudo -E "$0" "$@"       # -E: preserve environment (see KBUILD_SIGN_PIN below)
     exit $?
 fi
 
@@ -48,7 +48,7 @@ log() {
 # This is for Fedora
 alias sign-file="/usr/src/kernels/${fullver}/scripts/sign-file"
 
-if [ -z "${KBUILD_SIGN_PIN+x}" ]; then 
+if [ -z ${KBUILD_SIGN_PIN+x} ]; then 
   read -p "Passphrase for ${key}: " -s KBUILD_SIGN_PIN
   export KBUILD_SIGN_PIN
 fi
