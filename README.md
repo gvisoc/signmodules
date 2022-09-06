@@ -23,7 +23,7 @@ The script should be run after a reboot performed as a result of a kernel update
 - The compression adn decompression utilities `xz` and `unxz` are also needed. They are provided by the package `xz`.
 
 # Usage
-Clone this repository or download the script [signmodules], and place it in the `$PATH` variable.
+Clone this repository or download the script [signmodules](https://github.com/gvisoc/signmodules/blob/main/signmodules), and place it in the `$PATH` variable.
 
 ## Invocation and Behaviour
 The usage of the script is the following:
@@ -72,6 +72,7 @@ Passphrase for /home/gvisoc/Downloads/MOK.priv:
 $ echo $?
 0
 ```
+<<<<<<< HEAD
 Without logs:
 ```
 $ signmodules ~/Downloads/MOK.priv ~/Downloads/MOK.der -v vboxdrv v4l2loopback
@@ -83,3 +84,7 @@ $ echo $?
 
 # Automation of the script
 To run the script in an automation and without user interaction, set up the environment variable `KBUILD_SIGN_PIN` with the passphrase of the private part of the Machine Owner Key, `MOK.priv`, and run the script as an privileged service / under a system user with elevated privileges.
+=======
+# Credits
+This script is inspired by [this Gist](https://gist.github.com/reillysiemens/ac6bea1e6c7684d62f544bd79b2182a4) by [Reilly Tucker Siemens](https://gist.github.com/reillysiemens), and taken further to sign any set of modules, plus fix any broken systemd service caused by unsigned modules.
+>>>>>>> 5cb8d75ff40b909a49c5e24ca6fb6981d2419347
