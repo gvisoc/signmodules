@@ -22,7 +22,7 @@ The script should be run after a reboot performed as a result of a kernel update
 - Create a Machine Owner Key and enroll it, following the relevant instructions on the Fedora [System Administrator's Guide: Signing Kernel Modules for Secure Boot](https://docs.fedoraproject.org/en-US/fedora/latest/system-administrators-guide/kernel-module-driver-configuration/Working_with_Kernel_Modules/#sect-signing-kernel-modules-for-secure-boot).
 - The compression adn decompression utilities `xz` and `unxz` are also needed. They are provided by the package `xz`.
 
-# Usage
+# Install
 Clone this repository or download the script [signmodules](https://github.com/gvisoc/signmodules/blob/main/signmodules), and place it in the `$PATH` variable.
 
 ## Invocation and Behaviour
