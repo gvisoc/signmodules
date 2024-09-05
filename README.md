@@ -1,4 +1,8 @@
-# signmodules
+# signmodules (archived)
+> **Warning**
+> This repository is **archived** in GitHub and will no longer be maintained here.
+> This repository lives [here](https://forja.gvisoc.com/gabriel/signmodules) now.
+
 A shell script for signing kernel modules with a Machine Owner Key, for Fedora.
 
 # Background
